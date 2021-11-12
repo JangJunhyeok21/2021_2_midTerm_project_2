@@ -1,16 +1,27 @@
-# This is a sample Python script.
+import pygame
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+pygame.init()
 
+#화면 크기 설정
+screen_width=480
+screen_height=640
+screen=pygame.display.set_mode((screen_width,screen_height))
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+pygame.display.set_caption("test")
 
+#배경 이미지 불러오기
+background=pygame.image.load("background.png")
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+running=True #게임이 진행중인가 확인하는 변수
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running=False
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    screen.blit(background,(0,0))
+    #screen.fill(0,0,255)
+
+    pygame.display.update() #게임화면 리프레쉬(c++콘솔게임에서 지우고 새로 그리는 고런 너낌)
+
+#pygame 종료
+pygame.quit()
