@@ -58,8 +58,12 @@ class object_class:
     object_rect.top = object_y_pos
 
     def __init__(self):
-        self.object_speed = random.choice([1.0, 2.0])
-        self.object_spawnPoint = random.choice(['UP', 'DOWN'])
+        self.object_speed = random.choice([3.0, 6.0, 9.0])
+        a=random.randint(1,100)
+        if (a%10==0):
+            self.object_spawnPoint = random.choice(['UP', 'DOWN'])
+        else:
+            self.object_spawnPoint = 'NONE'
 
         # 스폰 지점 설정
         if self.object_spawnPoint == 'UP':
@@ -70,10 +74,13 @@ class object_class:
             self.object_x_pos = random.choice([200, 270, 340, 410, 480, 550])
             self.object_y_pos = screen_height
             self.object_rad = -1
+        elif self.object_spawnPoint == 'NONE':
+            self.object_x_pos = screen_width
+            self.object_y_pos = screen_height
 
     def object_move(self):
         self.object_x_pos += 0
-        self.object_y_pos += self.object_speed * self.object_rad * dt
+        self.object_y_pos += self.object_speed * self.object_rad
         global total_score
 
         def boundary_UP():
@@ -92,8 +99,10 @@ class object_class:
             if boundary_UP():
                 object_list.remove(self)
 
+        if self.object_spawnPoint == 'NONE':
+            object_list.remove(self)
 
-    def object_coll(self):
+    def object_collide(self):
         self.object_rect = self.object_image.get_rect()
         self.object_rect.left = self.object_x_pos
         self.object_rect.top = self.object_y_pos
@@ -153,7 +162,7 @@ while running:
 
     #충돌체크
     for i in object_list:
-        i.object_coll()
+        i.object_collide()
         if character_rect.colliderect(i.object_rect):
             print("충돌")
             print("점수 : ", total_score)
