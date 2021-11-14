@@ -19,6 +19,7 @@ pygame.display.set_caption("test")
 #사용자 게임 초기와 (배경, 이미지, 좌표, 속도 등)
 
 total_score=0
+temp_score=0
 level_control=10
 total_level=0
 total_level_list=[10,30,50,70]
@@ -58,7 +59,7 @@ class object_class:
     object_rect.top = object_y_pos
 
     def __init__(self):
-        self.object_speed = random.choice([3.0, 6.0, 9.0])
+        self.object_speed = random.choice([3.0, 5.0, 7.0])
         a=random.randint(1,100)
         if (a%10==0):
             self.object_spawnPoint = random.choice(['UP', 'DOWN'])
@@ -71,7 +72,7 @@ class object_class:
             self.object_y_pos = - self.object_height
             self.object_rad = 1
         elif self.object_spawnPoint == 'DOWN':
-            self.object_x_pos = random.choice([200, 270, 340, 410, 480, 550])
+            self.object_x_pos = random.choice([130, 200, 270, 340, 410, 480, 550])
             self.object_y_pos = screen_height
             self.object_rad = -1
         elif self.object_spawnPoint == 'NONE':
@@ -122,6 +123,7 @@ while running:
         if event.type==pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
                 to_x+=character_speed
+
             elif event.key == pygame.K_LEFT:
                 to_x-=character_speed
             elif event.key == pygame.K_UP:
@@ -137,6 +139,23 @@ while running:
 #캐릭터 이동
     character_x_pos+=to_x * dt
     character_y_pos+=to_y * dt
+
+    if character_x_pos > 620:
+        character_x_pos = 0
+        total_score += 7
+        temp_score = 0
+    elif character_x_pos > 550:
+        temp_score = 6
+    elif character_x_pos > 480:
+        temp_score = 5
+    elif character_x_pos > 410:
+        temp_score = 4
+    elif character_x_pos > 340:
+        temp_score = 3
+    elif character_x_pos > 270:
+        temp_score = 2
+    elif character_x_pos > 200:
+        temp_score = 1
 
 #범위 제한
     if character_y_pos<0:
@@ -164,8 +183,8 @@ while running:
     for i in object_list:
         i.object_collide()
         if character_rect.colliderect(i.object_rect):
-            print("충돌")
-            print("점수 : ", total_score)
+            print("충돌!!")
+            print("점수 : ", total_score + temp_score)
             running = False
 
         # 배경 및 캐릭터 출력
