@@ -25,13 +25,24 @@ pygame.display.set_caption("CrossRoad")
 total_score=0
 temp_score=0
 total_level=10
+characterSize=(40,70)
+is_right=None
+is_left=None
 
 #배경 이미지 불러오기
 background=pygame.image.load("source/background.png")
-character=pygame.image.load("source/character.png")
+character=[pygame.transform.scale(pygame.image.load("source/character/walk (1).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (2).png"),characterSize),
+           pygame.transform.scale(pygame.image.load("source/character/walk (3).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (4).png"),characterSize),
+           pygame.transform.scale(pygame.image.load("source/character/walk (5).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (6).png"),characterSize),
+           pygame.transform.scale(pygame.image.load("source/character/walk (7).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (8).png"),characterSize),
+           pygame.transform.scale(pygame.image.load("source/character/walk (9).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (10).png"),characterSize),
+           pygame.transform.scale(pygame.image.load("source/character/walk (11).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (12).png"),characterSize),
+           pygame.transform.scale(pygame.image.load("source/character/walk (13).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (14).png"),characterSize),
+           pygame.transform.scale(pygame.image.load("source/character/walk (15).png"),characterSize) ]
 
 #캐릭터 정보
-character_size=character.get_rect().size
+walkCount=1
+character_size=character[walkCount].get_rect().size
 character_width=character_size[0]
 character_height=character_size[1]
 character_x_pos=0
@@ -40,7 +51,7 @@ character_y_pos=screen_height/2 - character_height/2
 #캐릭터 이동 관련
 to_x=0
 to_y=0
-character_speed = 0.6
+character_speed = 0.5
 
 #장애물 클래스
 object_list = list()
@@ -61,7 +72,7 @@ class object_class:
     object_rect.top = object_y_pos
 
     def __init__(self):
-        self.object_speed = random.choice([3.0, 5.0, 7.0])
+        self.object_speed = random.choice([0.2, 0.4, 0.6]) * dt
         a=random.randint(1,100)
         if (a%10==0):
             self.object_spawnPoint = random.choice(['UP', 'DOWN'])
@@ -112,6 +123,23 @@ class object_class:
 
 ###############################
 
+#캐릭터 이동 함수
+def character_Move():
+    global walkCount, character_y_pos, character_x_pos, to_x, to_y, is_left,is_right
+    #walkCount가 범위를 넘어가면 초기화
+    if walkCount>13:
+        walkCount=0
+    elif walkCount<1:
+        walkCount=14
+
+    if is_right == True:
+        to_x = character_speed
+        walkCount+=1
+    elif is_left ==True:
+        to_x = -character_speed
+        walkCount-=1
+
+
 #실행문
 running=True #게임이 진행중인가 확인하는 변수
 while running:
@@ -124,10 +152,11 @@ while running:
 
         if event.type==pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
-                to_x+=character_speed
-
+                is_right = True
+                is_left = False
             elif event.key == pygame.K_LEFT:
-                to_x-=character_speed
+                is_right = False
+                is_left = True
             elif event.key == pygame.K_UP:
                 to_y-=character_speed
             elif event.key == pygame.K_DOWN:
@@ -135,12 +164,15 @@ while running:
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                to_x=0
+                is_right = False
+                is_left = False
+                to_x = 0
             elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                 to_y=0
     #캐릭터 이동
-    character_x_pos+=to_x * dt
-    character_y_pos+=to_y * dt
+    character_Move()
+    character_x_pos += to_x * dt
+    character_y_pos += to_y * dt
 
     #우측 도달 시 좌측으로 이동 및 점수 계산, 한 차선 당 1점
     if character_x_pos > 620:
@@ -178,7 +210,7 @@ while running:
 
 #충돌처리
     #충돌 처리를 위한 캐릭터 위치 확인
-    character_rect=character.get_rect()
+    character_rect=character[walkCount].get_rect()
     character_rect.left=character_x_pos
     character_rect.top=character_y_pos
 
@@ -217,7 +249,7 @@ while running:
     #배경 출력
     screen.blit(background, (0, 0))
     #캐릭터 출력
-    screen.blit(character, (character_x_pos, character_y_pos))
+    screen.blit(character[walkCount], (character_x_pos, character_y_pos))
     #장애물들 출력
     for i in object_list:
         i.object_move()
