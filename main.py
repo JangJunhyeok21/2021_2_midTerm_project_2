@@ -29,7 +29,7 @@ characterSize=(40,70)
 is_right=None
 is_left=None
 
-#배경 이미지 불러오기
+#배경 이미지 및 효과음 불러오기
 background=pygame.image.load("source/background.png")
 character=[pygame.transform.scale(pygame.image.load("source/character/walk (1).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (2).png"),characterSize),
            pygame.transform.scale(pygame.image.load("source/character/walk (3).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (4).png"),characterSize),
@@ -39,6 +39,8 @@ character=[pygame.transform.scale(pygame.image.load("source/character/walk (1).p
            pygame.transform.scale(pygame.image.load("source/character/walk (11).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (12).png"),characterSize),
            pygame.transform.scale(pygame.image.load("source/character/walk (13).png"),characterSize), pygame.transform.scale(pygame.image.load("source/character/walk (14).png"),characterSize),
            pygame.transform.scale(pygame.image.load("source/character/walk (15).png"),characterSize) ]
+clear_sound=pygame.mixer.Sound("source/stage_clear.wav")
+crash_sound=pygame.mixer.Sound("source/traffic_accident.wav")
 
 #캐릭터 정보
 walkCount=1
@@ -177,6 +179,7 @@ while running:
     #우측 도달 시 좌측으로 이동 및 점수 계산, 한 차선 당 1점
     if character_x_pos > 620:
         character_x_pos = 0
+        clear_sound.play()
         total_score += 7
         temp_score = 0
     elif character_x_pos > 550:
@@ -208,6 +211,16 @@ while running:
     if total_level >= len(object_list):
         object_list.append(object_class())
 
+    # 배경 및 캐릭터 출력
+    # 배경 출력
+    screen.blit(background, (0, 0))
+    # 캐릭터 출력
+    screen.blit(character[walkCount], (character_x_pos, character_y_pos))
+    # 장애물들 출력
+    for i in object_list:
+        i.object_move()
+        screen.blit(i.object_image, (i.object_x_pos, i.object_y_pos))
+
 #충돌처리
     #충돌 처리를 위한 캐릭터 위치 확인
     character_rect=character[walkCount].get_rect()
@@ -219,6 +232,7 @@ while running:
         i.object_collide()
         #충돌하였다면 게임 종료
         if character_rect.colliderect(i.object_rect):
+            crash_sound.play()
             print("충돌!!")
             while(1):
                 # 게임 오버 메시지
@@ -244,16 +258,6 @@ while running:
                     if event.type == pygame.QUIT or keyboard.is_pressed('esc'):
                         running = False
                         pygame.quit()
-
-# 배경 및 캐릭터 출력
-    #배경 출력
-    screen.blit(background, (0, 0))
-    #캐릭터 출력
-    screen.blit(character[walkCount], (character_x_pos, character_y_pos))
-    #장애물들 출력
-    for i in object_list:
-        i.object_move()
-        screen.blit(i.object_image, (i.object_x_pos, i.object_y_pos))
 
     pygame.display.update() #게임화면 리프레쉬
 
