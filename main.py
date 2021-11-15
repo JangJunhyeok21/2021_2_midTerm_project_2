@@ -1,7 +1,6 @@
 import pygame
 import random
 import keyboard
-
 ########################################
 
 # 기본 초기화
@@ -27,10 +26,15 @@ pygame.display.set_caption("무단 횡단")
 total_score = 0
 temp_score = 0
 total_level = 10
+
 characterSize = (40, 70)
 carSize = (25, 50)
+
 is_right = None
 is_left = None
+
+ranking = []  #게임 기록 저장할 빈 리스트
+names=[]    # 닉네임 저장할 빈 리스트
 
 running = True  # 게임이 진행중인가 확인하는 변수
 play = False
@@ -81,8 +85,6 @@ character_speed = 0.5
 
 # 장애물 클래스
 object_list = list()
-
-
 class object_class:
     object_image = pygame.image.load("source/cars/object.png")
 
@@ -144,7 +146,6 @@ class object_class:
         self.object_rect.left = self.object_x_pos
         self.object_rect.top = self.object_y_pos
 
-
 # 버튼 클래스
 class Button:
     def __init__(self, img, x, y, width, height, action=None):
@@ -162,9 +163,25 @@ class Button:
 ###############################
 # 게임 중지 함수
 def quitgame():
-    global running
+    global running, play
+
+    f = open("source/score.txt", 'w')
+    for name, rank in zip(names, ranking):  # names와 ranking리스트에서 각 요소를
+        w = name + ":" + str(rank) + "\n"  # :와 \n로 합쳐 한줄로 만든다.
+        f.write(w)  # 파일에 한줄씩 기록
+    f.close()
+
+    play = False
+    running = False
     pygame.quit()
-    running=False
+
+def loading():
+    f=open("source/score.txt",'r')
+    lines=f.readlines() #파일 전체 내용 lines에 저장
+    for line in lines:
+        names.append(line[:line.index(":")])    #이름은 ranking의 0인덱스에
+        ranking.append(int(line[line.index(":")+1:-1])) # 랭킹은 int형으로 ranking 0인덱스에 삽입 ( -1인 한 이유는 \n 제거 위함 )
+    f.close()
 
 def playgame():
     global play
@@ -236,7 +253,7 @@ def printer():
             screen.blit(i.object_image, (i.object_x_pos, i.object_y_pos))
     else:
         screen.blit(readyScreen, (0, 0))
-        screen.blit(start_icon, (80, 455))
+        screen.blit(start_icon, (100, 455))
         screen.blit(quit_icon, (480, 455))
 
 
@@ -253,31 +270,47 @@ def crash():
         if character_rect.colliderect(i.object_rect):
             crash_sound.play()
             print("충돌!!")
+
+            msg4 = game_font.render("콘솔에 이름입력", True, (0, 0, 0), (150, 150, 150))  # 검은색 글씨, 회색 바탕
+            msg4_rect = msg4.get_rect()
+            msg4_rect.center = (int(screen_width / 2), int(screen_height / 2) - 55)
+            screen.blit(msg4, msg4_rect)
+            pygame.display.update()
+
+            if len(ranking) == 0 or ranking[0] > total_score+temp_score:  #최고기록이라면
+                name = input("\n닉네임을 입력하세요 >> ")  # 닉네임 입력받음
+                names.insert(0, name)  # 이름리스트; 최고 기록이니까 0번째 인덱스에 삽입한다.
+                ranking.insert(0, total_score+temp_score)  # 기록리스트; #최고 기록이니까 0번째 인덱스에 삽입한다.
+                print("게임화면을 보세요.")
+
             while (1):
+                screen.fill((255,255,255))
                 # 게임 오버 메시지
                 msg1 = game_font.render(" CRASH!! ", True, (0, 0, 0), (150, 150, 150))  # 검은색 글씨, 회색 바탕
                 msg2 = game_font.render(f' SCORE : {total_score + temp_score}', True, (0, 0, 0), (150, 150, 150))
                 msg3 = game_font.render(" PRESS \'esc\' TO QUIT. ", True, (0, 0, 0), (150, 150, 150))
+                msg5 = game_font.render(f'최고기록 : {name[0]}의 {ranking[0]}점', True, (0, 0, 0), (150, 150, 150))
                 # 메시지 출력위치를 가져온다
                 msg1_rect = msg1.get_rect()
                 msg2_rect = msg2.get_rect()
                 msg3_rect = msg3.get_rect()
+                msg5_rect = msg5.get_rect()
                 # 택스트객체의 중심을 설정한 좌표로 한다.
                 msg1_rect.center = (int(screen_width / 2), int(screen_height / 2) - 55)
                 msg2_rect.center = (int(screen_width / 2), int(screen_height / 2))
                 msg3_rect.center = (int(screen_width / 2), int(screen_height / 2) + 55)
+                msg5_rect.center = (int(screen_width / 2), int(screen_height / 2) + 110)
                 # 텍스트 객체를 출력한다.
                 screen.blit(msg1, msg1_rect)
                 screen.blit(msg2, msg2_rect)
                 screen.blit(msg3, msg3_rect)
+                screen.blit(msg5, msg5_rect)
 
                 pygame.display.update()
                 # esc 혹은 창닫기를 누르면 종료.
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT or keyboard.is_pressed('esc'):
-                        play = False
-                        running = False
-                        pygame.quit()
+                        quitgame()
 
 # 실행문
 
@@ -291,17 +324,16 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
-            if 180 >= pos[0] >= 80 and 555 >= pos[1] >= 455:
+            if 200 >= pos[0] >= 100 and 555 >= pos[1] >= 455:
                 playgame()
-            if 570 >= pos[0] >= 480 and 555 >= pos[1] >= 455:
+            if 580 >= pos[0] >= 480 and 555 >= pos[1] >= 455:
                 quitgame()
     while play:
         dt = clock.tick(60)
         print("fps : " + str(clock.get_fps()))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                play = False
-                running = False
+                quitgame()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
@@ -341,9 +373,10 @@ while running:
         printer()
         # 충돌처리
         crash()
-        pygame.display.update()  # 게임화면 리프레쉬
-
-    pygame.display.update()  # 게임화면 리프레쉬
+        # 게임화면 리프레쉬
+        pygame.display.update()
+    # 게임화면 리프레쉬
+    pygame.display.update()
 
 # pygame 종료
 pygame.quit()
