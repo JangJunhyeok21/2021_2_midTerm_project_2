@@ -162,15 +162,17 @@ class Button:
 
 ###############################
 # 게임 중지 함수
-def quitgame():
-    global running, play
-
+def close():
     f = open("source/score.txt", 'w')
     for name, rank in zip(names, ranking):  # names와 ranking리스트에서 각 요소를
         w = name + ":" + str(rank) + "\n"  # :와 \n로 합쳐 한줄로 만든다.
         f.write(w)  # 파일에 한줄씩 기록
     f.close()
 
+def quitgame():
+    global running, play, names,ranking
+
+    pygame.time.wait(10)
     play = False
     running = False
     pygame.quit()
@@ -179,7 +181,7 @@ def loading():
     f=open("source/score.txt",'r')
     lines=f.readlines() #파일 전체 내용 lines에 저장
     for line in lines:
-        names.append(line[:line.index(":")])    #이름은 ranking의 0인덱스에
+        names.append(line[:line.index(":")])     #이름은 ranking의 0인덱스에
         ranking.append(int(line[line.index(":")+1:-1])) # 랭킹은 int형으로 ranking 0인덱스에 삽입 ( -1인 한 이유는 \n 제거 위함 )
     f.close()
 
@@ -271,16 +273,16 @@ def crash():
             crash_sound.play()
             print("충돌!!")
 
-            msg4 = game_font.render("콘솔에 이름입력", True, (0, 0, 0), (150, 150, 150))  # 검은색 글씨, 회색 바탕
-            msg4_rect = msg4.get_rect()
-            msg4_rect.center = (int(screen_width / 2), int(screen_height / 2) - 55)
-            screen.blit(msg4, msg4_rect)
-            pygame.display.update()
-
-            if len(ranking) == 0 or ranking[0] > total_score+temp_score:  #최고기록이라면
+            if len(ranking) == 0 or ranking[0] < total_score+temp_score:  #최고기록이라면
+                msg4 = game_font.render("콘솔에 이름입력", True, (0, 0, 0), (150, 150, 150))  # 검은색 글씨, 회색 바탕
+                msg4_rect = msg4.get_rect()
+                msg4_rect.center = (int(screen_width / 2), int(screen_height / 2) - 55)
+                screen.blit(msg4, msg4_rect)
+                pygame.display.update()
                 name = input("\n닉네임을 입력하세요 >> ")  # 닉네임 입력받음
                 names.insert(0, name)  # 이름리스트; 최고 기록이니까 0번째 인덱스에 삽입한다.
                 ranking.insert(0, total_score+temp_score)  # 기록리스트; #최고 기록이니까 0번째 인덱스에 삽입한다.
+                close()
                 print("게임화면을 보세요.")
 
             while (1):
@@ -289,7 +291,7 @@ def crash():
                 msg1 = game_font.render(" CRASH!! ", True, (0, 0, 0), (150, 150, 150))  # 검은색 글씨, 회색 바탕
                 msg2 = game_font.render(f' SCORE : {total_score + temp_score}', True, (0, 0, 0), (150, 150, 150))
                 msg3 = game_font.render(" PRESS \'esc\' TO QUIT. ", True, (0, 0, 0), (150, 150, 150))
-                msg5 = game_font.render(f'최고기록 : {name[0]}의 {ranking[0]}점', True, (0, 0, 0), (150, 150, 150))
+                msg5 = game_font.render(f'최고기록 : {names[0]}의 {ranking[0]}점', True, (0, 0, 0), (150, 150, 150))
                 # 메시지 출력위치를 가져온다
                 msg1_rect = msg1.get_rect()
                 msg2_rect = msg2.get_rect()
@@ -313,10 +315,9 @@ def crash():
                         quitgame()
 
 # 실행문
-
+loading()
 while running:
     dt = clock.tick(60)
-    #print("fps : " + str(clock.get_fps()))
     printer()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
